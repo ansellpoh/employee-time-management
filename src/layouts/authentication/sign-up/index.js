@@ -31,8 +31,28 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import { useState } from "react";
 
 function Cover() {
+  const [name, setName] = useState("");
+
+  function handleSubmit(e){
+    e.preventDefault();
+    fetch("http://localhost:3001/add-employee",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+        }),
+      }
+    )
+      .then(() => setName(""))
+      .catch(error => console.error(error));
+  }
+
   return (
     <CoverLayout image={bgImage}>
       <Card>
@@ -57,7 +77,14 @@ function Cover() {
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mb={2}>
-              <MDInput type="text" label="Name" variant="standard" fullWidth />
+              <MDInput 
+                type="text" 
+                label="Name" 
+                variant="standard" 
+                fullWidth
+                value={name}
+                onChange={e => setName(e.target.value)} 
+              />
             </MDBox>
             <MDBox mb={2}>
               <MDInput type="email" label="Email" variant="standard" fullWidth />
@@ -87,7 +114,7 @@ function Cover() {
               </MDTypography>
             </MDBox>
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
+              <MDButton variant="gradient" color="info" fullWidth onClick={e => handleSubmit(e)}>
                 sign in
               </MDButton>
             </MDBox>

@@ -25,8 +25,69 @@ import MDBadge from "components/MDBadge";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
+import { useState, useEffect } from "react";
 
-export default function data() {
+import {format} from 'date-fns';
+
+// convert date to MySQL format
+function getDate(date){
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`
+}
+
+export default function data(employee, chosenDate) {
+  const [absency, setAbsency] = useState([]);
+
+  const employeeAbsency = employee.map(e => {
+    const absencyData = absency.filter(a => a.employeeID === e.id)
+    let absencyDisplay = {};
+    if(absencyData[0]){
+      const clockin = absencyData[0].clockin && new Date(absencyData[0].clockin);
+      const clockout = absencyData[0].clockout && new Date(absencyData[0].clockout);
+      let duration;
+      if(clockin && clockout){
+        let timeDiff = clockout.getTime() - clockin.getTime();
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+        const seconds = Math.floor((timeDiff / 1000) % 60);
+        duration = hours + " h " + minutes + " m " + seconds + " s";
+      }
+
+      absencyDisplay = {
+        clockin: clockin ? format(clockin, "HH:mm:ss") : "-",
+        clockout: clockout ? format(clockout, "HH:mm:ss") : "-",
+        duration: duration ?? "-",
+        location: absencyData[0].location ?? "-",
+        message: absencyData[0].message ?? "-",
+      }
+    }else{
+      absencyDisplay = {
+        clockin: "-",
+        clockout: "-",
+        duration: "-",
+        location: "-",
+        message: "-",
+      }
+    }
+    return {
+      name: e.name,
+      ...absencyDisplay,
+    }
+  })
+
+  const date = getDate(chosenDate);
+
+  useEffect(() => {
+    fetch(`http://localhost:3001/get-absency${date}`)
+      .then(res => res.json())
+      .then(data => setAbsency(data))
+      .catch(error => console.error(error));
+
+  }, [date]);
+
   const Author = ({ image, name, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
@@ -50,11 +111,24 @@ export default function data() {
 
   return {
     columns: [
+      { Header: "name", accessor: "name", align: "left" },
+      { Header: "clock in", accessor: "clockin", align: "center" },
+      { Header: "clock out", accessor: "clockout", align: "center" },
+      { Header: "duration", accessor: "duration", align: "center" },
+      { Header: "location", accessor: "location", align: "center" },
+      { Header: "message", accessor: "message", align: "center" },
+    ],
+    rows: employeeAbsency
+  }
+
+  return {
+    columns: [
       { Header: "author", accessor: "author", width: "45%", align: "left" },
       { Header: "function", accessor: "function", align: "left" },
       { Header: "status", accessor: "status", align: "center" },
       { Header: "employed", accessor: "employed", align: "center" },
       { Header: "action", accessor: "action", align: "center" },
+      { Header: "act", accessor: "act", align: "center" },
     ],
 
     rows: [
@@ -169,6 +243,13 @@ export default function data() {
         action: (
           <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
             Edit
+          </MDTypography>
+        ),
+      },
+      {
+        author: (
+          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+            new author
           </MDTypography>
         ),
       },

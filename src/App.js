@@ -44,7 +44,7 @@ import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
 // Material Dashboard 2 React routes
-import routes from "routes";
+import routesWithProps from "routes";
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
@@ -108,6 +108,17 @@ export default function App() {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
+
+  const [employee, setEmployee] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/get-employee")
+      .then(res => res.json())
+      .then(data => setEmployee(data))
+      .catch(error => console.error(error));
+  },[])
+
+  const routes = routesWithProps(employee);
 
   const getRoutes = (allRoutes) =>
     allRoutes.map((route) => {

@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // react-router-dom components
 import { Link } from "react-router-dom";
@@ -41,10 +41,74 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
-function Basic() {
-  const [rememberMe, setRememberMe] = useState(false);
+import PropTypes from "prop-types";
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
+function Basic({employee}) {
+  const [rememberMe, setRememberMe] = useState(false); //remove later
+
+  const handleSetRememberMe = () => setRememberMe(!rememberMe); //remove later
+
+  const [name, setName] = useState("");
+  const [absency, setAbsency] = useState([]);
+
+  useEffect(() => {
+    // change to get today's absency
+    fetch("http://localhost:3001/get-today")
+      .then(res => res.json())
+      .then(data => setAbsency(data))
+      .catch(error => console.error(error));
+  }, [])
+
+  function handleClockin(){
+    fetch("http://localhost:3001/clockin",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userID,
+        }),
+      }
+    )
+      .then(() => setName(""))
+      .catch(error => console.error(error));
+  }
+
+  function handleClockout(){
+    fetch("http://localhost:3001/clockout",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userID,
+        }),
+      }
+    )
+      .then(() => setName(""))
+      .catch(error => console.error(error));
+  }
+
+  let match = false;
+  let userID = "";
+  employee.forEach(e => {
+    if(e.name === name){
+      match = true;
+      userID = e.id;
+    }
+  });
+
+  let clockin = true;
+  if(match){
+    absency.forEach(a => {
+      // if the user has clocked in
+      if(a.employeeID === userID){
+        clockin = false;
+      }
+    })
+  }
 
   return (
     <BasicLayout image={bgImage}>
@@ -84,7 +148,12 @@ function Basic() {
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth />
+              <MDInput 
+                type="text" 
+                label="Name" 
+                fullWidth
+                value={name}
+                onChange={e => setName(e.target.value)} />
             </MDBox>
             <MDBox mb={2}>
               <MDInput type="password" label="Password" fullWidth />
@@ -102,9 +171,10 @@ function Basic() {
               </MDTypography>
             </MDBox>
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                sign in
-              </MDButton>
+              {match && 
+              (clockin ? 
+                <MDButton variant="gradient" color="info" fullWidth onClick={handleClockin}>clock in</MDButton> : 
+                <MDButton variant="gradient" color="info" fullWidth onClick={handleClockout}>clock out</MDButton>)}
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
@@ -127,5 +197,9 @@ function Basic() {
     </BasicLayout>
   );
 }
+
+Basic.propTypes = {
+  employee: PropTypes.array
+};
 
 export default Basic;

@@ -48,7 +48,7 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
+const routesWithProps = (employee) => [
   {
     type: "collapse",
     name: "Dashboard",
@@ -63,7 +63,7 @@ const routes = [
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
-    component: <Tables />,
+    component: <Tables employee={employee}/>,
   },
   {
     type: "collapse",
@@ -103,7 +103,7 @@ const routes = [
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
-    component: <SignIn />,
+    component: <SignIn employee={employee}/>,
   },
   {
     type: "collapse",
@@ -115,4 +115,4 @@ const routes = [
   },
 ];
 
-export default routes;
+export default routesWithProps;

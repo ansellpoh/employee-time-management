@@ -59,6 +59,7 @@ function Overview() {
       <Header>
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
+            {/*
             <Grid item xs={12} md={6} xl={4}>
               <PlatformSettings />
             </Grid>
@@ -94,6 +95,10 @@ function Overview() {
                 shadow={false}
               />
               <Divider orientation="vertical" sx={{ mx: 0 }} />
+            </Grid>
+            */}
+            <Grid item xs={12} md={6} xl={8}>
+
             </Grid>
             <Grid item xs={12} xl={4}>
               <ProfilesList title="conversations" profiles={profilesListData} shadow={false} />

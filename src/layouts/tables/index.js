@@ -30,9 +30,16 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 import projectsTableData from "layouts/tables/data/projectsTableData";
+import PropTypes from "prop-types";
 
-function Tables() {
-  const { columns, rows } = authorsTableData();
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useState } from "react";
+
+function Tables({employee}) {
+  const [date, setDate] = useState(new Date());
+  
+  const { columns, rows } = authorsTableData(employee, date);
   const { columns: pColumns, rows: pRows } = projectsTableData();
 
   return (
@@ -53,8 +60,9 @@ function Tables() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Authors Table
+                  Absency Table
                 </MDTypography>
+                <DatePicker selected={date} onChange={d => setDate(d)} />
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
@@ -100,5 +108,9 @@ function Tables() {
     </DashboardLayout>
   );
 }
+
+Tables.propTypes = {
+  employee: PropTypes.array
+};
 
 export default Tables;
