@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // react-router-dom components
 import { Link } from "react-router-dom";
@@ -40,74 +40,42 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import { serverAddress } from "App";
+import { serverPort } from "App";
 
-import PropTypes from "prop-types";
+function Basic() {
+  // part of the template
+  /*const [rememberMe, setRememberMe] = useState(false);
+  const handleSetRememberMe = () => setRememberMe(!rememberMe);*/
 
-function Basic({employee}) {
-  const [rememberMe, setRememberMe] = useState(false); //remove later
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe); //remove later
+  const [message, setMessage] = useState(""); // used to store the message sent back from the server
 
-  const [name, setName] = useState("");
-  const [absency, setAbsency] = useState([]);
-
-  useEffect(() => {
-    // change to get today's absency
-    fetch("http://localhost:3001/get-today")
-      .then(res => res.json())
-      .then(data => setAbsency(data))
-      .catch(error => console.error(error));
-  }, [])
-
-  function handleClockin(){
-    fetch("http://localhost:3001/clockin",
+  // callback function to handle when a user signs in
+  function handleSignin(){
+    // send the username and password to the server to authenticate
+    fetch(`http://${serverAddress}:${serverPort}/auth`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userID,
+          username,
+          password,
         }),
+        credentials: 'include',
       }
     )
-      .then(() => setName(""))
+      .then(res => res.json())
+      .then(res => setMessage(res.message)) // get the message sent back from the server to display to the user
+      .then(() => {
+        setUsername("");
+        setPassword("");
+      })
       .catch(error => console.error(error));
-  }
-
-  function handleClockout(){
-    fetch("http://localhost:3001/clockout",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userID,
-        }),
-      }
-    )
-      .then(() => setName(""))
-      .catch(error => console.error(error));
-  }
-
-  let match = false;
-  let userID = "";
-  employee.forEach(e => {
-    if(e.name === name){
-      match = true;
-      userID = e.id;
-    }
-  });
-
-  let clockin = true;
-  if(match){
-    absency.forEach(a => {
-      // if the user has clocked in
-      if(a.employeeID === userID){
-        clockin = false;
-      }
-    })
   }
 
   return (
@@ -127,6 +95,7 @@ function Basic({employee}) {
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
             Sign in
           </MDTypography>
+          {/*
           <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
             <Grid item xs={2}>
               <MDTypography component={MuiLink} href="#" variant="body1" color="white">
@@ -143,21 +112,31 @@ function Basic({employee}) {
                 <GoogleIcon color="inherit" />
               </MDTypography>
             </Grid>
-          </Grid>
+          </Grid> */}
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mb={2}>
               <MDInput 
                 type="text" 
-                label="Name" 
+                label="Username" 
                 fullWidth
-                value={name}
-                onChange={e => setName(e.target.value)} />
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
             </MDBox>
+            
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth />
+              <MDInput 
+                type="password" 
+                label="Password" 
+                fullWidth 
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
             </MDBox>
+            
+            {/*
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Switch checked={rememberMe} onChange={handleSetRememberMe} />
               <MDTypography
@@ -170,11 +149,14 @@ function Basic({employee}) {
                 &nbsp;&nbsp;Remember me
               </MDTypography>
             </MDBox>
+            */}
             <MDBox mt={4} mb={1}>
-              {match && 
-              (clockin ? 
-                <MDButton variant="gradient" color="info" fullWidth onClick={handleClockin}>clock in</MDButton> : 
-                <MDButton variant="gradient" color="info" fullWidth onClick={handleClockout}>clock out</MDButton>)}
+              <MDButton variant="gradient" color="info" fullWidth onClick={handleSignin}>
+                sign in
+              </MDButton>
+            </MDBox>
+            <MDBox mt={4} mb={1}>
+              <MDTypography>{message}</MDTypography>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
@@ -197,9 +179,5 @@ function Basic({employee}) {
     </BasicLayout>
   );
 }
-
-Basic.propTypes = {
-  employee: PropTypes.array
-};
 
 export default Basic;

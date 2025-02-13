@@ -25,11 +25,13 @@ import MDBadge from "components/MDBadge";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {format} from 'date-fns';
 
-// convert date to MySQL format
+import {serverAddress, serverPort} from "App.js"
+
+// a function to convert date to MySQL format
 function getDate(date){
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0'); 
@@ -39,54 +41,9 @@ function getDate(date){
 }
 
 export default function data(employee, chosenDate) {
-  const [absency, setAbsency] = useState([]);
 
-  const employeeAbsency = employee.map(e => {
-    const absencyData = absency.filter(a => a.employeeID === e.id)
-    let absencyDisplay = {};
-    if(absencyData[0]){
-      const clockin = absencyData[0].clockin && new Date(absencyData[0].clockin);
-      const clockout = absencyData[0].clockout && new Date(absencyData[0].clockout);
-      let duration;
-      if(clockin && clockout){
-        let timeDiff = clockout.getTime() - clockin.getTime();
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
-        const seconds = Math.floor((timeDiff / 1000) % 60);
-        duration = hours + " h " + minutes + " m " + seconds + " s";
-      }
-
-      absencyDisplay = {
-        clockin: clockin ? format(clockin, "HH:mm:ss") : "-",
-        clockout: clockout ? format(clockout, "HH:mm:ss") : "-",
-        duration: duration ?? "-",
-        location: absencyData[0].location ?? "-",
-        message: absencyData[0].message ?? "-",
-      }
-    }else{
-      absencyDisplay = {
-        clockin: "-",
-        clockout: "-",
-        duration: "-",
-        location: "-",
-        message: "-",
-      }
-    }
-    return {
-      name: e.name,
-      ...absencyDisplay,
-    }
-  })
-
-  const date = getDate(chosenDate);
-
-  useEffect(() => {
-    fetch(`http://localhost:3001/get-absency${date}`)
-      .then(res => res.json())
-      .then(data => setAbsency(data))
-      .catch(error => console.error(error));
-
-  }, [date]);
+  const [absency, setAbsency] = useState([]); // used to store the absency data for a given date
+  const abortControllerRef = useRef(null); // used for the cleanup function for fetching data from the server inside useEffect()
 
   const Author = ({ image, name, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
@@ -100,14 +57,79 @@ export default function data(employee, chosenDate) {
     </MDBox>
   );
 
-  const Job = ({ title, description }) => (
+  // part of the template in case it is useful
+  /*const Job = ({ title, description }) => (
     <MDBox lineHeight={1} textAlign="left">
       <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
         {title}
       </MDTypography>
       <MDTypography variant="caption">{description}</MDTypography>
     </MDBox>
-  );
+  );*/
+
+  // the absency data from all employees to be displayed
+  const employeeAbsency = employee.map(e => {
+    const absencyData = absency.filter(a => a.employeeID === e.id) // get the absency data for a given employee
+
+    let absencyDisplay = {}; // the absency data for a given employee converted into a format to be displayed
+
+    // if absency data for that employee exists
+    if(absencyData[0]){
+      // the clockin and clockout times (if exists)
+      const clockin = absencyData[0].clockin && new Date(absencyData[0].clockin);
+      const clockout = absencyData[0].clockout && new Date(absencyData[0].clockout);
+
+      // calculate duration if both clockin and clockout are recorded
+      let duration;
+      if(clockin && clockout){
+        let timeDiff = clockout.getTime() - clockin.getTime();
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+        const seconds = Math.floor((timeDiff / 1000) % 60);
+        duration = hours + " h " + minutes + " m " + seconds + " s";
+      }
+
+      absencyDisplay = {
+        clockin: clockin ? format(clockin, "HH:mm:ss") : "-",
+        clockout: clockout ? format(clockout, "HH:mm:ss") : "-",
+        duration: duration ?? "-",
+        location: absencyData[0].location ? (absencyData[0].location.valueOf() ?? "-") : "-",
+        message: absencyData[0].message ? (absencyData[0].message.valueOf() ?? "-") : "-",
+      }
+    }else{
+      absencyDisplay = {
+        clockin: "-",
+        clockout: "-",
+        duration: "-",
+        location: "-",
+        message: "-",
+      }
+    }
+
+    return {
+      name: <Author image={team2} name={e.name} email="example@gmail.com" />,
+      ...absencyDisplay,
+    }
+  })
+
+  const date = getDate(chosenDate); // convert the chosenDate to MySQL format
+
+  // everytime the chosen date changes, fetch absency data from that date from the database
+  useEffect(() => {
+    fetch(`http://${serverAddress}:${serverPort}/get-absency${date}`,{credentials: 'include'})
+      .then(res => res.json())
+      .then(data => setAbsency(data))
+      .catch(error => console.error(error));
+
+    // clean up fetch
+    return () => {
+      if(abortControllerRef.current){
+        abortControllerRef.current.abort();
+      }
+    }
+  }, [date]);
+
+  abortControllerRef.current = new AbortController;
 
   return {
     columns: [
@@ -121,6 +143,8 @@ export default function data(employee, chosenDate) {
     rows: employeeAbsency
   }
 
+  // part of the template  in case it is useful
+  /*
   return {
     columns: [
       { Header: "author", accessor: "author", width: "45%", align: "left" },
@@ -254,5 +278,5 @@ export default function data(employee, chosenDate) {
         ),
       },
     ],
-  };
+  };*/
 }

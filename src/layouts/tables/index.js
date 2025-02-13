@@ -30,6 +30,7 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import authorsTableData from "layouts/tables/data/authorsTableData";
 import projectsTableData from "layouts/tables/data/projectsTableData";
+
 import PropTypes from "prop-types";
 
 import DatePicker from "react-datepicker";
@@ -38,9 +39,11 @@ import { useState } from "react";
 
 function Tables({employee}) {
   const [date, setDate] = useState(new Date());
-  
+
   const { columns, rows } = authorsTableData(employee, date);
-  const { columns: pColumns, rows: pRows } = projectsTableData();
+
+  // part of the template
+  //const { columns: pColumns, rows: pRows } = projectsTableData();
 
   return (
     <DashboardLayout>
@@ -75,6 +78,7 @@ function Tables({employee}) {
               </MDBox>
             </Card>
           </Grid>
+          {/*
           <Grid item xs={12}>
             <Card>
               <MDBox
@@ -101,7 +105,7 @@ function Tables({employee}) {
                 />
               </MDBox>
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </MDBox>
       <Footer />
