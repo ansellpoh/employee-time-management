@@ -31,8 +31,32 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import { useState } from "react";
+import { serverAddress } from "App";
+import { serverPort } from "App";
 
 function Cover() {
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  // add an employee to the database
+  function handleSubmit(){
+    fetch(`http://${serverAddress}:${serverPort}/add-employee`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+        }),
+      }
+    )
+      .then(() => setName(""))
+      .catch(error => console.error(error));
+  }
+
   return (
     <CoverLayout image={bgImage}>
       <Card>
@@ -48,23 +72,46 @@ function Cover() {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Join us today
+            Add a New Employee
           </MDTypography>
+          {/*
           <MDTypography display="block" variant="button" color="white" my={1}>
             Enter your email and password to register
-          </MDTypography>
+          </MDTypography>*/}
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mb={2}>
-              <MDInput type="text" label="Name" variant="standard" fullWidth />
+              <MDInput 
+                type="text" 
+                label="Name" 
+                variant="standard" 
+                fullWidth
+                value={name}
+                onChange={e => setName(e.target.value)} 
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" variant="standard" fullWidth />
+              <MDInput 
+                type="text" 
+                label="Username" 
+                variant="standard" 
+                fullWidth 
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" variant="standard" fullWidth />
+              <MDInput 
+                type="password" 
+                label="Password" 
+                variant="standard" 
+                fullWidth 
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
             </MDBox>
+            {/*
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Checkbox />
               <MDTypography
@@ -85,12 +132,13 @@ function Cover() {
               >
                 Terms and Conditions
               </MDTypography>
-            </MDBox>
+            </MDBox> */}
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                sign in
+              <MDButton variant="gradient" color="info" fullWidth onClick={handleSubmit}>
+                Add Employee
               </MDButton>
             </MDBox>
+            {/*
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Already have an account?{" "}
@@ -105,7 +153,7 @@ function Cover() {
                   Sign In
                 </MDTypography>
               </MDTypography>
-            </MDBox>
+            </MDBox> */}
           </MDBox>
         </MDBox>
       </Card>

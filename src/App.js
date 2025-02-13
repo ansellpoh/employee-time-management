@@ -44,7 +44,7 @@ import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
 // Material Dashboard 2 React routes
-import routes from "routes";
+import routesWithProps from "routes";
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
@@ -53,7 +53,14 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
+// address of the server
+const serverAddress = "192.168.123.76";
+//const serverAddress = "localhost";
+const serverPort = "3001"
+export {serverAddress, serverPort};
+
 export default function App() {
+
   const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
@@ -108,6 +115,18 @@ export default function App() {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
+
+  const [employee, setEmployee] = useState([]);
+
+  // get all the employees's names and ids
+  useEffect(() => {
+    fetch(`http://${serverAddress}:${serverPort}/get-employee`)
+      .then(res => res.json())
+      .then(data => setEmployee(data))
+      .catch(error => console.error(error));
+  },[])
+
+  const routes = routesWithProps(employee);
 
   const getRoutes = (allRoutes) =>
     allRoutes.map((route) => {

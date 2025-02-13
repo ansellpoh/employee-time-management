@@ -42,13 +42,15 @@ import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
+import ClockInOut from "layouts/authentication/clock-in-out";
+import AddEmployee from "layouts/authentication/add-employee";
 import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
+import QrCode from "layouts/qrcode";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
+const routesWithProps = (employee) => [
   {
     type: "collapse",
     name: "Dashboard",
@@ -63,9 +65,9 @@ const routes = [
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
-    component: <Tables />,
+    component: <Tables employee={employee} />,
   },
-  {
+  /*{
     type: "collapse",
     name: "Billing",
     key: "billing",
@@ -88,18 +90,34 @@ const routes = [
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
     component: <Notifications />,
-  },
+  },*/
   {
     type: "collapse",
     name: "Profile",
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
-    component: <Profile />,
+    component: <Profile employee={employee} />,
   },
   {
     type: "collapse",
-    name: "Sign In",
+    name: "Clock In / Clock Out",
+    key: "clock-in-out",
+    icon: <Icon fontSize="small">login</Icon>,
+    route: "/authentication/clock-in-out",
+    component: <ClockInOut employee={employee} />,
+  },
+  {
+    type: "collapse",
+    name: "Add Employee",
+    key: "add-employee",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/authentication/add-employee",
+    component: <AddEmployee />,
+  },
+  {
+    type: "collapse",
+    name: "Sign in",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
@@ -107,12 +125,12 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Sign Up",
-    key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/authentication/sign-up",
-    component: <SignUp />,
+    name: "QR Code",
+    key: "qr-code",
+    icon: <Icon fontSize="small">QR</Icon>,
+    route: "/qrcode",
+    component: <QrCode />,
   },
 ];
 
-export default routes;
+export default routesWithProps;

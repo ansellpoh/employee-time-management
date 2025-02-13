@@ -51,7 +51,24 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-function Overview() {
+import PropTypes from "prop-types";
+import MDButton from "components/MDButton";
+import { useState } from "react";
+
+function Overview({employee}) {
+  const [selectedEmployee, setSelectedEmployee] = useState({}) // the selected employee from the buttons
+  const [employeeAbsency, setEmployeeAbsency] = useState([]) // the absency information for the selected employee
+
+  // a function to handle when an employee is chosen
+  function handleSelectEmployee(e){
+    // get the absency information for the given employee
+    setSelectedEmployee(e);
+    fetch(`http://localhost:3001/get-employee-absency${e.id}`)
+      .then(res => res.json())
+      .then(data => setEmployeeAbsency(data))
+      .catch(error => console.error(error));
+  }
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -59,6 +76,7 @@ function Overview() {
       <Header>
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
+            {/*
             <Grid item xs={12} md={6} xl={4}>
               <PlatformSettings />
             </Grid>
@@ -95,8 +113,29 @@ function Overview() {
               />
               <Divider orientation="vertical" sx={{ mx: 0 }} />
             </Grid>
+            */}
+            {/*
             <Grid item xs={12} xl={4}>
               <ProfilesList title="conversations" profiles={profilesListData} shadow={false} />
+            </Grid> */}
+            <Grid item xs={12} md={6} xl={8}>
+              {selectedEmployee && selectedEmployee.name}
+              <ul>
+                {employeeAbsency.map(data => {
+                  return <li key={data.date}>clock in: {data.clockin}, clockout={data.clockout}</li>
+                })}
+              </ul>
+            </Grid>
+            <Grid item xs={12} xl={4}>
+              <ul>
+                {employee.map(e => {
+                  return (
+                    <li key={e.id}>
+                      <MDButton variant="text" color="info" onClick={() => handleSelectEmployee(e)}>{e.name}</MDButton>
+                    </li>
+                  )
+                })}
+              </ul>
             </Grid>
           </Grid>
         </MDBox>
@@ -199,5 +238,9 @@ function Overview() {
     </DashboardLayout>
   );
 }
+
+Overview.propTypes = {
+  employee: PropTypes.array
+};
 
 export default Overview;

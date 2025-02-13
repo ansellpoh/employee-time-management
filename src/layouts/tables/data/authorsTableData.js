@@ -25,8 +25,26 @@ import MDBadge from "components/MDBadge";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
+import { useState, useEffect, useRef } from "react";
 
-export default function data() {
+import {format} from 'date-fns';
+
+import {serverAddress, serverPort} from "App.js"
+
+// a function to convert date to MySQL format
+function getDate(date){
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`
+}
+
+export default function data(employee, chosenDate) {
+
+  const [absency, setAbsency] = useState([]); // used to store the absency data for a given date
+  const abortControllerRef = useRef(null); // used for the cleanup function for fetching data from the server inside useEffect()
+
   const Author = ({ image, name, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
@@ -39,15 +57,94 @@ export default function data() {
     </MDBox>
   );
 
-  const Job = ({ title, description }) => (
+  // part of the template in case it is useful
+  /*const Job = ({ title, description }) => (
     <MDBox lineHeight={1} textAlign="left">
       <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
         {title}
       </MDTypography>
       <MDTypography variant="caption">{description}</MDTypography>
     </MDBox>
-  );
+  );*/
 
+  // the absency data from all employees to be displayed
+  const employeeAbsency = employee.map(e => {
+    const absencyData = absency.filter(a => a.employeeID === e.id) // get the absency data for a given employee
+
+    let absencyDisplay = {}; // the absency data for a given employee converted into a format to be displayed
+
+    // if absency data for that employee exists
+    if(absencyData[0]){
+      // the clockin and clockout times (if exists)
+      const clockin = absencyData[0].clockin && new Date(absencyData[0].clockin);
+      const clockout = absencyData[0].clockout && new Date(absencyData[0].clockout);
+
+      // calculate duration if both clockin and clockout are recorded
+      let duration;
+      if(clockin && clockout){
+        let timeDiff = clockout.getTime() - clockin.getTime();
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+        const seconds = Math.floor((timeDiff / 1000) % 60);
+        duration = hours + " h " + minutes + " m " + seconds + " s";
+      }
+
+      absencyDisplay = {
+        clockin: clockin ? format(clockin, "HH:mm:ss") : "-",
+        clockout: clockout ? format(clockout, "HH:mm:ss") : "-",
+        duration: duration ?? "-",
+        location: absencyData[0].location ? (absencyData[0].location.valueOf() ?? "-") : "-",
+        message: absencyData[0].message ? (absencyData[0].message.valueOf() ?? "-") : "-",
+      }
+    }else{
+      absencyDisplay = {
+        clockin: "-",
+        clockout: "-",
+        duration: "-",
+        location: "-",
+        message: "-",
+      }
+    }
+
+    return {
+      name: <Author image={team2} name={e.name} email="example@gmail.com" />,
+      ...absencyDisplay,
+    }
+  })
+
+  const date = getDate(chosenDate); // convert the chosenDate to MySQL format
+
+  // everytime the chosen date changes, fetch absency data from that date from the database
+  useEffect(() => {
+    fetch(`http://${serverAddress}:${serverPort}/get-absency${date}`,{credentials: 'include'})
+      .then(res => res.json())
+      .then(data => setAbsency(data))
+      .catch(error => console.error(error));
+
+    // clean up fetch
+    return () => {
+      if(abortControllerRef.current){
+        abortControllerRef.current.abort();
+      }
+    }
+  }, [date]);
+
+  abortControllerRef.current = new AbortController;
+
+  return {
+    columns: [
+      { Header: "name", accessor: "name", align: "left" },
+      { Header: "clock in", accessor: "clockin", align: "center" },
+      { Header: "clock out", accessor: "clockout", align: "center" },
+      { Header: "duration", accessor: "duration", align: "center" },
+      { Header: "location", accessor: "location", align: "center" },
+      { Header: "message", accessor: "message", align: "center" },
+    ],
+    rows: employeeAbsency
+  }
+
+  // part of the template  in case it is useful
+  /*
   return {
     columns: [
       { Header: "author", accessor: "author", width: "45%", align: "left" },
@@ -55,6 +152,7 @@ export default function data() {
       { Header: "status", accessor: "status", align: "center" },
       { Header: "employed", accessor: "employed", align: "center" },
       { Header: "action", accessor: "action", align: "center" },
+      { Header: "act", accessor: "act", align: "center" },
     ],
 
     rows: [
@@ -172,6 +270,13 @@ export default function data() {
           </MDTypography>
         ),
       },
+      {
+        author: (
+          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
+            new author
+          </MDTypography>
+        ),
+      },
     ],
-  };
+  };*/
 }

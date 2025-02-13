@@ -40,11 +40,43 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import { serverAddress } from "App";
+import { serverPort } from "App";
 
 function Basic() {
-  const [rememberMe, setRememberMe] = useState(false);
+  // part of the template
+  /*const [rememberMe, setRememberMe] = useState(false);
+  const handleSetRememberMe = () => setRememberMe(!rememberMe);*/
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [message, setMessage] = useState(""); // used to store the message sent back from the server
+
+  // callback function to handle when a user signs in
+  function handleSignin(){
+    // send the username and password to the server to authenticate
+    fetch(`http://${serverAddress}:${serverPort}/auth`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+        credentials: 'include',
+      }
+    )
+      .then(res => res.json())
+      .then(res => setMessage(res.message)) // get the message sent back from the server to display to the user
+      .then(() => {
+        setUsername("");
+        setPassword("");
+      })
+      .catch(error => console.error(error));
+  }
 
   return (
     <BasicLayout image={bgImage}>
@@ -63,6 +95,7 @@ function Basic() {
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
             Sign in
           </MDTypography>
+          {/*
           <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
             <Grid item xs={2}>
               <MDTypography component={MuiLink} href="#" variant="body1" color="white">
@@ -79,16 +112,31 @@ function Basic() {
                 <GoogleIcon color="inherit" />
               </MDTypography>
             </Grid>
-          </Grid>
+          </Grid> */}
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
           <MDBox component="form" role="form">
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth />
+              <MDInput 
+                type="text" 
+                label="Username" 
+                fullWidth
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
             </MDBox>
+            
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth />
+              <MDInput 
+                type="password" 
+                label="Password" 
+                fullWidth 
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
             </MDBox>
+            
+            {/*
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Switch checked={rememberMe} onChange={handleSetRememberMe} />
               <MDTypography
@@ -101,10 +149,14 @@ function Basic() {
                 &nbsp;&nbsp;Remember me
               </MDTypography>
             </MDBox>
+            */}
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
+              <MDButton variant="gradient" color="info" fullWidth onClick={handleSignin}>
                 sign in
               </MDButton>
+            </MDBox>
+            <MDBox mt={4} mb={1}>
+              <MDTypography>{message}</MDTypography>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
